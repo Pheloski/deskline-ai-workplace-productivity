@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Deskline — AI workplace assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #17262380;
+    --pine: #17332F;
+    --pine-deep: #0E211E;
+    --paper: #F6F1E4;
+    --paper-line: #DAD2B8;
+    --ink: #22302B;
+    --ink-soft: #5B6660;
+    --ochre: #C1841F;
+    --ochre-deep: #8C5E13;
+    --brick: #7C3A2C;
+    --brick-bg: #F1E1D9;
+    --line: #C9BD9C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: var(--pine-deep);
+    font-family:'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    min-height:100vh;
+  }
+  .shell{
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding: 6px 4px 20px;
+    border-bottom: 1px solid #3A5750;
+    margin-bottom: 22px;
+  }
+  .masthead h1{
+    font-family:'Source Serif 4', serif;
+    font-weight:600;
+    font-size: 26px;
+    color: #F6F1E4;
+    margin:0;
+    letter-spacing: 0.2px;
+  }
+  .masthead p{
+    margin:4px 0 0;
+    color:#A9BFB8;
+    font-size:13px;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns: 190px 1fr;
+    gap: 18px;
+    align-items:start;
+  }
+  @media (max-width: 700px){
+    .layout{ grid-template-columns: 1fr; }
+  }
+  .tabs{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .tab{
+    text-align:left;
+    background: transparent;
+    border: none;
+    border-radius: 6px 6px 0 0;
+    padding: 12px 14px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14.5px;
+    font-weight:500;
+    color:#CBDAD4;
+    cursor:pointer;
+    position:relative;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .tab .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:#7FA096;
+    display:block;
+    margin-bottom:3px;
+  }
+  .tab:hover{ background:#20403A; color:#F6F1E4; }
+  .tab.active{
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .tab.active .num{ color: var(--ochre-deep); }
+  .paper{
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 26px 30px 22px;
+    min-height: 480px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 30px,
+      var(--paper-line) 31px
+    );
+    background-position: 0 78px;
+  }
+  .tool-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    margin-bottom: 18px;
+  }
+  .tool-head h2{
+    font-family:'Source Serif 4', serif;
+    font-size:21px;
+    font-weight:600;
+    margin:0 0 4px;
+  }
+  .tool-head p{
+    margin:0;
+    color: var(--ink-soft);
+    font-size:13.5px;
+    max-width: 480px;
+  }
+  label{
+    display:block;
+    font-size:12.5px;
+    color: var(--ink-soft);
+    margin: 14px 0 5px;
+  }
+  label:first-of-type{ margin-top:0; }
+  textarea, select, input[type=text]{
+    width:100%;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    color: var(--ink);
+    background: #FFFDF7;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 9px 11px;
+    resize: vertical;
+  }
+  textarea:focus, select:focus, input:focus{
+    outline: none;
+    border-color: var(--ochre-deep);
+    box-shadow: 0 0 0 2px #C1841F26;
+  }
+  .row{ display:flex; gap:14px; }
+  .row > div{ flex:1; }
+  .actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:18px;
+  }
+  button.primary{
+    background: var(--ochre);
+    color: #2A1A05;
+    border: none;
+    font-weight:600;
+    font-size:14px;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor:pointer;
+    font-family:'IBM Plex Sans', sans-serif;
+    transition: background 0.15s ease;
+  }
+  button.primary:hover{ background:#D2932C; }
+  button.primary:disabled{ background:#D8CBAA; color:#8A7F63; cursor:default; }
+  button.ghost{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor:pointer;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  button.ghost:hover{ border-color: var(--ochre-deep); color: var(--ink); }
+  .spinner{
+    width:14px; height:14px;
+    border-radius:50%;
+    border: 2px solid #D8CBAA;
+    border-top-color: var(--ochre-deep);
+    animation: spin 0.7s linear infinite;
+    display:inline-block;
+    vertical-align: -2px;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+  .output{
+    margin-top: 22px;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+  .output-body{
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+  .output-body h3{
+    font-family:'Source Serif 4', serif;
+    font-size:15.5px;
+    margin: 16px 0 6px;
+    color: var(--ochre-deep);
+  }
+  .output-body h3:first-child{ margin-top:0; }
+  .output-body table{
+    width:100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px;
+    font-size: 13.5px;
+  }
+  .output-body th, .output-body td{
+    border: 1px solid var(--line);
+    padding: 6px 9px;
+    text-align:left;
+    vertical-align: top;
+  }
+  .output-body th{
+    background: #EFE7CF;
+    font-weight:600;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.3px;
+  }
+  .output-body ul{ margin: 4px 0 12px; padding-left: 20px; }
+  .output-body li{ margin-bottom: 4px; }
+  .output-body strong{ font-weight:600; }
+  .meta-strip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .error-box{
+    background: var(--brick-bg);
+    border: 1px solid #D9B6A9;
+    color: var(--brick);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+  details.prompt-box{
+    margin-top: 20px;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    padding: 10px 14px;
+  }
+  details.prompt-box summary{
+    cursor:pointer;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    font-weight:500;
+  }
+  details.prompt-box pre{
+    white-space: pre-wrap;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin: 10px 0 2px;
+    line-height:1.5;
+  }
+  .footer-note{
+    margin: 22px auto 0;
+    max-width: 1040px;
+    padding: 0 20px;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    color:#A9BFB8;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .footer-note .mark{
+    color: var(--ochre);
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+  }
+  .about-toggle{
+    background:none;
+    border:none;
+    color:#9BC2B6;
+    font-size:12px;
+    text-decoration: underline;
+    cursor:pointer;
+    padding:0;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .about-panel{
+    max-width:1040px;
+    margin: 10px auto 0;
+    padding: 16px 20px;
+    background:#0E211E;
+    border:1px solid #2C4941;
+    border-radius:6px;
+    color:#C7D9D2;
+    font-size:12.5px;
+    line-height:1.7;
+  }
+  .about-panel h4{
+    color:#F6F1E4;
+    font-family:'Source Serif 4', serif;
+    font-size:14px;
+    margin: 12px 0 4px;
+  }
+  .about-panel h4:first-child{ margin-top:0; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="masthead">
+    <div>
+      <h1>Deskline</h1>
+      <p>An AI-assisted desk for the three drafts that eat a workday: emails, meeting notes, and the daily plan.</p>
+    </div>
+    <button class="about-toggle" id="aboutToggle">how this was built + limitations</button>
+  </div>
+
+  <div class="layout">
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="email"><span class="num">01</span>Email drafting</button>
+      <button class="tab" data-tab="meeting"><span class="num">02</span>Meeting notes</button>
+      <button class="tab" data-tab="planner"><span class="num">03</span>Task planner</button>
+    </div>
+
+    <div class="paper" id="paper"></div>
+  </div>
+</div>
+
+<div class="footer-note">
+  <span class="mark">note</span>
+  <span>Every draft below is a starting point, not a finished product. Check names, dates, figures and commitments before sending or acting on anything Deskline writes, and use your own judgment on tone and priorities — the model has no visibility into your actual calendar, inbox, or team.</span>
+</div>
+
+<div class="about-panel" id="aboutPanel" style="display:none;">
+  <h4>What this is</h4>
+  <p>Deskline is a small prototype built for a productivity-AI project brief. It wraps three workplace tasks — email drafting, meeting-notes summarizing, and daily task planning — around the Claude API, with a separate system prompt engineered for each one.</p>
+  <h4>Prompt engineering approach</h4>
+  <p>Each tool went through at least two rounds. A first-pass prompt ("summarize these notes") produced vague, uneven output that sometimes invented details. The working prompts here fix that by: naming an explicit output structure (fixed section headers, a fixed table format), forbidding invented facts (dates, owners, deadlines not present in the source), and giving tone/audience as explicit parameters rather than folding them into free text. Use "view the prompt" under each tool to see exactly what was sent.</p>
+  <h4>Responsible use</h4>
+  <p>Nothing you type here is stored — each request is sent fresh and nothing is saved between sessions. Outputs can still be wrong, generic, or reflect bias in the underlying model, so they're labeled as drafts throughout, never sent or scheduled automatically, and a review step is left to you before anything leaves this page.</p>
+</div>
+
+<script>
+async function callClaude(system, userText){
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system: system,
+      messages: [{ role: "user", content: userText }]
+    })
+  });
+  if(!response.ok){ throw new Error("Request failed (" + response.status + ")"); }
+  const data = await response.json();
+  const block = data.content && data.content.find(c => c.type === "text");
+  if(!block){ throw new Error("No text returned"); }
+  return block.text;
+}
+
+function renderMarkdownish(text){
+  const lines = text.split("\n");
+  let html = "";
+  let inList = false;
+  let inTable = false;
+  let tableRows = [];
+
+  function flushList(){ if(inList){ html += "</ul>"; inList = false; } }
+  function flushTable(){
+    if(inTable){
+      const [header, ...rows] = tableRows.filter(r => !/^\|?\s*-+\s*\|/.test(r));
+      const cells = s => s.split("|").map(c => c.trim()).filter((c,i,a) => !(i===0 && c==="") && !(i===a.length-1 && c===""));
+      if(header){
+        html += "<table><thead><tr>" + cells(header).map(c => `<th>${escapeHtml(c)}</th>`).join("") + "</tr></thead><tbody>";
+        rows.forEach(r => {
+          html += "<tr>" + cells(r).map(c => `<td>${inlineFormat(escapeHtml(c))}</td>`).join("") + "</tr>";
+        });
+        html += "</tbody></table>";
+      }
+      tableRows = [];
+      inTable = false;
+    }
+  }
+  function escapeHtml(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function inlineFormat(s){ return s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>"); }
+
+  for(let raw of lines){
+    const line = raw;
+    if(/^\s*\|.*\|\s*$/.test(line)){
+      flushList();
+      inTable = true;
+      tableRows.push(line.trim());
+      continue;
+    } else {
+      flushTable();
+    }
+    if(/^##\s+/.test(line)){
+      flushList();
+      html += `<h3>${inlineFormat(escapeHtml(line.replace(/^##\s+/, "")))}</h3>`;
+    } else if(/^-\s+/.test(line) || /^\d+\.\s+/.test(line)){
+      if(!inList){ html += "<ul>"; inList = true; }
+      html += `<li>${inlineFormat(escapeHtml(line.replace(/^-\s+/, "").replace(/^\d+\.\s+/, "")))}</li>`;
+    } else if(line.trim() === ""){
+      flushList();
+      html += "";
+    } else {
+      flushList();
+      html += `<p style="margin:6px 0;">${inlineFormat(escapeHtml(line))}</p>`;
+    }
+  }
+  flushList();
+  flushTable();
+  return html;
+}
+
+const TOOLS = {
+  email: {
+    label: "Email drafting",
+    desc: "Turn a rough situation into a ready-to-edit email, matched to tone and audience.",
+    render(container){
+      container.innerHTML = `
+        <div class="tool-head">
+          <div><h2>Email drafting</h2><p>Describe the situation in plain language. Deskline drafts the subject and body — you send it.</p></div>
+        </div>
+        <label for="e-context">What's the email about?</label>
+        <textarea id="e-context" rows="4" placeholder="e.g. Telling a client the project delivery will slip by one week due to a vendor delay, and proposing a revised date."></textarea>
+        <div class="row">
+          <div>
+            <label for="e-audience">Audience</label>
+            <select id="e-audience">
+              <option value="client">Client</option>
+              <option value="manager">Manager</option>
+              <option value="team">Team / direct reports</option>
+              <option value="colleague">Colleague / peer</option>
+            </select>
+          </div>
+          <div>
+            <label for="e-tone">Tone</label>
+            <select id="e-tone">
+              <option value="formal">Formal</option>
+              <option value="informal">Informal</option>
+              <option value="persuasive">Persuasive</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="e-run">Draft email</button>
+          <span id="e-status"></span>
+        </div>
+        <div id="e-error"></div>
+        <div id="e-output"></div>
+        <details class="prompt-box" id="e-prompt-box" style="display:none;">
+          <summary>view the prompt sent to Claude</summary>
+          <pre id="e-prompt-text"></pre>
+        </details>
+      `;
+      document.getElementById("e-run").addEventListener("click", async () => {
+        const context = document.getElementById("e-context").value.trim();
+        const audience = document.getElementById("e-audience").value;
+        const tone = document.getElementById("e-tone").value;
+        const errorBox = document.getElementById("e-error");
+        const output = document.getElementById("e-output");
+        errorBox.innerHTML = "";
+        if(!context){
+          errorBox.innerHTML = '<div class="error-box">Describe what the email is about first.</div>';
+          return;
+        }
+        const audienceGuide = {
+          client: "external client — emphasize relationship, clarity of impact, and next steps; avoid internal jargon.",
+          manager: "your manager — lead with the headline/status, be concise, flag what you need from them.",
+          team: "your team or direct reports — collaborative and action-oriented, make ownership clear.",
+          colleague: "a peer colleague — collegial, efficient, informal courtesy is fine."
+        };
+        const toneGuide = {
+          formal: "precise, respectful, business register. No contractions.",
+          informal: "warm and conversational while staying professional. Contractions are fine.",
+          persuasive: "confident and benefit-led, building toward one clear call to action."
+        };
+        const system = `You are a workplace email drafting assistant.
+Write one email based on the user's description.
+Audience: ${audienceGuide[audience]}
+Tone: ${toneGuide[tone]}
+Output format: a line starting "Subject:" followed by the email body. No preamble, no notes, no explanations.
+If a needed detail (name, date, number) is missing, use a bracketed placeholder like [date] rather than inventing a specific fact.`;
+        const userText = context;
+
+        document.getElementById("e-prompt-box").style.display = "block";
+        document.getElementById("e-prompt-text").textContent = "SYSTEM:\n" + system + "\n\nUSER:\n" + userText;
+
+        const btn = document.getElementById("e-run");
+        btn.disabled = true;
+        document.getElementById("e-status").innerHTML = '<span class="spinner"></span>';
+        try{
+          const result = await callClaude(system, userText);
+          output.innerHTML = `<div class="output"><div class="meta-strip">draft — ${audience} / ${tone}</div><div class="output-body">${renderMarkdownish(result)}</div></div>`;
+        } catch(err){
+          errorBox.innerHTML = `<div class="error-box">Couldn't generate a draft: ${err.message}. Try again.</div>`;
+        } finally {
+          btn.disabled = false;
+          document.getElementById("e-status").innerHTML = "";
+        }
+      });
+    }
+  },
+  meeting: {
+    label: "Meeting notes",
+    desc: "Paste raw notes, get key points, decisions and an action-item table with owners and deadlines.",
+    render(container){
+      container.innerHTML = `
+        <div class="tool-head">
+          <div><h2>Meeting notes summarizer</h2><p>Paste your raw notes below, however messy. Deskline pulls out what mattered.</p></div>
+        </div>
+        <label for="m-notes">Raw meeting notes</label>
+        <textarea id="m-notes" rows="9" placeholder="Paste your notes here — bullet points, half-sentences, whatever you actually typed during the call."></textarea>
+        <div class="actions">
+          <button class="primary" id="m-run">Summarize</button>
+          <span id="m-status"></span>
+        </div>
+        <div id="m-error"></div>
+        <div id="m-output"></div>
+        <details class="prompt-box" id="m-prompt-box" style="display:none;">
+          <summary>view the prompt sent to Claude</summary>
+          <pre id="m-prompt-text"></pre>
+        </details>
+      `;
+      document.getElementById("m-run").addEventListener("click", async () => {
+        const notes = document.getElementById("m-notes").value.trim();
+        const errorBox = document.getElementById("m-error");
+        const output = document.getElementById("m-output");
+        errorBox.innerHTML = "";
+        if(!notes){
+          errorBox.innerHTML = '<div class="error-box">Paste some meeting notes first.</div>';
+          return;
+        }
+        const system = `You are a meeting-notes assistant. Given raw meeting notes, produce a structured summary using exactly these three sections, in this order, as markdown:
+## Key points
+3 to 6 short bullets covering what was discussed.
+## Decisions
+Bulleted list of decisions actually made. If none were made, write one bullet: "No firm decisions recorded."
+## Action items
+A markdown table with columns: Task | Owner | Deadline. If an owner or deadline is not stated in the notes, write "Not specified" rather than guessing.
+Only use information present in the notes. Do not invent names, dates, or commitments.`;
+        document.getElementById("m-prompt-box").style.display = "block";
+        document.getElementById("m-prompt-text").textContent = "SYSTEM:\n" + system + "\n\nUSER:\n" + notes;
+
+        const btn = document.getElementById("m-run");
+        btn.disabled = true;
+        document.getElementById("m-status").innerHTML = '<span class="spinner"></span>';
+        try{
+          const result = await callClaude(system, notes);
+          output.innerHTML = `<div class="output"><div class="meta-strip">summary</div><div class="output-body">${renderMarkdownish(result)}</div></div>`;
+        } catch(err){
+          errorBox.innerHTML = `<div class="error-box">Couldn't summarize: ${err.message}. Try again.</div>`;
+        } finally {
+          btn.disabled = false;
+          document.getElementById("m-status").innerHTML = "";
+        }
+      });
+    }
+  },
+  planner: {
+    label: "Task planner",
+    desc: "List what's on your plate, get it prioritized into a schedule.",
+    render(container){
+      container.innerHTML = `
+        <div class="tool-head">
+          <div><h2>Task planner</h2><p>One task per line. Add a due date or note if you have one. Deskline prioritizes and blocks time.</p></div>
+        </div>
+        <label for="p-tasks">Tasks</label>
+        <textarea id="p-tasks" rows="7" placeholder="Finish Q3 budget draft - due tomorrow 5pm&#10;Reply to vendor contract questions&#10;Prep slides for Friday all-hands&#10;1:1 with new hire"></textarea>
+        <label for="p-scope">Plan for</label>
+        <select id="p-scope" style="max-width:220px;">
+          <option value="today (a single working day)">Today</option>
+          <option value="this week (five working days)">This week</option>
+        </select>
+        <div class="actions">
+          <button class="primary" id="p-run">Generate plan</button>
+          <span id="p-status"></span>
+        </div>
+        <div id="p-error"></div>
+        <div id="p-output"></div>
+        <details class="prompt-box" id="p-prompt-box" style="display:none;">
+          <summary>view the prompt sent to Claude</summary>
+          <pre id="p-prompt-text"></pre>
+        </details>
+      `;
+      document.getElementById("p-run").addEventListener("click", async () => {
+        const tasks = document.getElementById("p-tasks").value.trim();
+        const scope = document.getElementById("p-scope").value;
+        const errorBox = document.getElementById("p-error");
+        const output = document.getElementById("p-output");
+        errorBox.innerHTML = "";
+        if(!tasks){
+          errorBox.innerHTML = '<div class="error-box">Add at least one task first.</div>';
+          return;
+        }
+        const system = `You are a workplace planning assistant. The user will give you a raw task list for ${scope}.
+Prioritize using urgency and importance (treat explicit deadlines as high urgency; treat items tied to other people waiting on you as high importance).
+Respond in exactly this markdown structure:
+## Priority order
+A numbered list, most important/urgent first, each with a one-line reason.
+## Suggested schedule
+A markdown table with columns: Time block | Task | Priority (High/Medium/Low).
+## Time-saving tips
+2 to 4 short bullets specific to this particular list (e.g. batching similar tasks, where to add buffer).
+Only use deadlines and details the user actually gave you. Do not invent specific clock times unless the user provided them — use relative blocks like "Morning" or "First 30 minutes" instead.`;
+        document.getElementById("p-prompt-box").style.display = "block";
+        document.getElementById("p-prompt-text").textContent = "SYSTEM:\n" + system + "\n\nUSER:\n" + tasks;
+
+        const btn = document.getElementById("p-run");
+        btn.disabled = true;
+        document.getElementById("p-status").innerHTML = '<span class="spinner"></span>';
+        try{
+          const result = await callClaude(system, tasks);
+          output.innerHTML = `<div class="output"><div class="meta-strip">plan — ${scope}</div><div class="output-body">${renderMarkdownish(result)}</div></div>`;
+        } catch(err){
+          errorBox.innerHTML = `<div class="error-box">Couldn't build a plan: ${err.message}. Try again.</div>`;
+        } finally {
+          btn.disabled = false;
+          document.getElementById("p-status").innerHTML = "";
+        }
+      });
+    }
+  }
+};
+
+function showTab(name){
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  const container = document.getElementById("paper");
+  TOOLS[name].render(container);
+}
+
+document.getElementById("tabs").addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab");
+  if(!btn) return;
+  showTab(btn.dataset.tab);
+});
+
+document.getElementById("aboutToggle").addEventListener("click", () => {
+  const panel = document.getElementById("aboutPanel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+});
+
+showTab("email");
+</script>
+</body>
+</html>
